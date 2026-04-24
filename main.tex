@@ -1,0 +1,95 @@
+% =============================================================
+%  main.tex — Master file for RBG-Level ISAC Paper
+%  Conference: ICC / Globecom / WiOpt
+%  Compile: pdflatex → bibtex → pdflatex × 2
+% =============================================================
+\documentclass[conference]{IEEEtran}
+
+% =============================================================
+%  Packages
+% =============================================================
+%%% Math
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bm}
+
+%%% Citations
+\usepackage{cite}
+\usepackage[hidelinks, bookmarks=false]{hyperref}
+
+%%% Graphics & Figures
+\usepackage{graphicx}
+\graphicspath{{images/}{figures/}}
+
+%%% Tables
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+%%% TikZ (for system diagrams)
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric,
+                fit, backgrounds, calc, decorations.pathreplacing}
+
+%%% Algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%%% Misc
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}   % load last among standard packages
+
+% =============================================================
+%  Theorem-like environments
+% =============================================================
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}
+
+% =============================================================
+%  Custom commands (consistent with LDSA paper notation)
+% =============================================================
+\newcommand{\Ncal}{\mathcal{N}}
+\newcommand{\Ucal}{\mathcal{U}}
+\newcommand{\Gcal}{\mathcal{G}}
+\newcommand{\Scal}{\mathcal{S}}
+\newcommand{\Rmin}{R^{\min}}
+\newcommand{\CRB}{\mathrm{CRB}}
+\newcommand{\FIM}{\mathbf{J}}
+\newcommand{\Real}{\mathrm{Re}}
+\newcommand{\blkdiag}{\mathrm{blkdiag}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% =============================================================
+%  Document
+% =============================================================
+\begin{document}
+
+\title{RBG-Level Subcarrier Allocation for MIMO-OFDM ISAC\\ with Per-User Fairness Guarantees}
+
+\author{\IEEEauthorblockN{Quang Thang Tran, Hoai An Pham, Quang Trung Dong}
+\IEEEauthorblockA{Viettel Semiconductor Center, Viettel Group, Vietnam\\
+\{thangtq23, anph44, trungdq8\}@viettel.com.vn}}
+
+\maketitle
+
+% --- Sections (each is a separate .tex file) ---
+\input{sections/01_abstract}
+\input{sections/02_introduction}
+% \input{sections/03_related_work}       % uncomment if separate from intro
+\input{sections/04_system_model}
+\input{sections/05_proposed_method}
+\input{sections/06_results}
+\input{sections/07_conclusion}
+
+% --- References ---
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

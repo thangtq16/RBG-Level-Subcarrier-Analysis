@@ -1,0 +1,287 @@
+% =============================================================
+%  Section II — System Model and Problem Formulation
+%  File: sections/04_system_model.tex
+%  Note: \input'd from main.tex — do NOT include preamble here
+% =============================================================
+
+\section{System Model and Problem Formulation}
+\label{sec:system}
+
+We consider the same monostatic MIMO-OFDM ISAC framework as in~\cite{ldsa}, but impose an additional \emph{RBG-granularity constraint} that reflects the actual scheduling structure mandated by the 5G~NR physical layer~\cite{3gpp.38.214}.
+Throughout this section, we first recap the notation and key results from~\cite{ldsa} (Sections~\ref{subsec:signal}--\ref{subsec:crb_recap}), then introduce the RBG structure (Section~\ref{subsec:rbg_structure}) and formulate the new optimisation problem (Section~\ref{subsec:problem}).
+
+% -------------------------------------------------------------
+\subsection{Signal Model}
+\label{subsec:signal}
+% -------------------------------------------------------------
+
+A monostatic ISAC base station (BS) is equipped with a uniform linear array (ULA) of $N_T$ transmit and $N_R$ receive antennas with half-wavelength spacing $d = \lambda/2$.
+The system employs an OFDM waveform with $N$ subcarriers at subcarrier spacing $\Delta f$ and carrier frequency $f_c$.
+A coherent processing interval (CPI) comprises $L$ OFDM symbols with symbol duration~$T_s$.
+The BS simultaneously performs multi-target radar sensing and serves $U$ downlink OFDMA users.
+
+\subsubsection{Communication}
+On each communication subcarrier~$n$ (i.e., $w_n = 0$), the BS transmits to the designated user $u_n \in \{1,\ldots,U\}$ with water-filling power $p_n$.
+The per-subcarrier achievable rate is
+\begin{equation}
+  r_n = \log_2\!\left(1 + \frac{p_n |h_{n,u_n}|^2}{\sigma_c^2}\right),
+  \label{eq:rate_sub}
+\end{equation}
+where $h_{n,u_n}$ is the frequency-domain channel coefficient from the BS to user~$u_n$ on subcarrier~$n$, and $\sigma_c^2$ is the noise power at the communication receiver.
+The aggregate rate delivered to user~$u$ under a binary allocation vector $\mathbf{w} = [w_0, \ldots, w_{N-1}]^\top$ is
+\begin{equation}
+  R_u(\mathbf{w}) = \sum_{\substack{n:\, u_n = u}} (1 - w_n)\, r_n.
+  \label{eq:rate_user}
+\end{equation}
+
+\subsubsection{Sensing}
+After matched filtering, the baseband echo from a point target at range $R$, velocity $v$, and angle-of-arrival (AoA) $\theta$ is observed at receive antenna $r$, subcarrier $n$, and OFDM symbol $l$ as~\cite{sturm2011}
+\begin{equation}
+  y[r,n,l] = \beta \, e^{j2\pi \frac{d}{\lambda}\sin\theta \cdot r}
+              \, e^{-j2\pi n \Delta f \tau}
+              \, e^{j2\pi f_D l T_s}
+              + z[r,n,l],
+  \label{eq:echo}
+\end{equation}
+where $\tau = 2R/c$ is the round-trip delay, $f_D = 2v f_c / c$ is the Doppler frequency, $\beta \in \mathbb{C}$ is the complex target amplitude, and $z[r,n,l] \sim \mathcal{CN}(0, \sigma_z^2)$ is additive white Gaussian noise.
+Only sensing subcarriers ($w_n = 1$) contribute observations.
+
+% -------------------------------------------------------------
+\subsection{CRB Analysis (Recap from~\cite{ldsa})}
+\label{subsec:crb_recap}
+% -------------------------------------------------------------
+
+We briefly recall the key result of~\cite{ldsa} that motivates the objective function.
+The structural parameter vector is $\boldsymbol{\eta} = [\tau, f_D, \theta]^\top$ (after concentrating out $\beta$).
+Define the moment sums of the selected subcarrier indices:
+\begin{equation}
+  S_k(\mathbf{w}) = \sum_{n=0}^{N-1} w_n \, n^k, \quad k = 0, 1, 2,
+  \label{eq:moments}
+\end{equation}
+so that $S_0 = K$ (the sensing budget), $\bar{n} = S_1 / K$ is the index mean, and the index variance is
+\begin{equation}
+  V(\mathbf{w}) = \frac{1}{K} \sum_{n=0}^{N-1} w_n (n - \bar{n})^2
+               = \frac{S_2}{K} - \left(\frac{S_1}{K}\right)^{\!2}.
+  \label{eq:variance}
+\end{equation}
+
+As shown in~\cite{ldsa}, by adopting centred subcarrier coordinates $\tilde{n} = n - \bar{n}$, the Fisher Information Matrix (FIM) block-diagonalises into a delay block and a Doppler--angle block:
+\begin{equation}
+  \FIM^{(c)}(\mathbf{w}) = \gamma \, \blkdiag\!\Big(
+    N_R L \, \alpha_f^2 K \, V(\mathbf{w}),\;
+    \mathbf{J}_{23}
+  \Big),
+  \label{eq:fim_block}
+\end{equation}
+where $\gamma = 2|\beta|^2 / \sigma_z^2$, $\alpha_f = 2\pi \Delta f$, and $\mathbf{J}_{23}$ is the $2\times 2$ Doppler--angle block that depends on $K$ but \emph{not} on the selection pattern.
+The range Cram\'{e}r--Rao bound (CRB) follows as
+\begin{equation}
+  \CRB(R;\, \mathbf{w}) = \frac{c^2}{16\pi^2 \Delta f^2 \cdot \gamma \cdot N_R \cdot L \cdot K \cdot V(\mathbf{w})}.
+  \label{eq:crb_range}
+\end{equation}
+Since all parameters except $V(\mathbf{w})$ are fixed by system design, \emph{minimising} $\CRB(R)$ is equivalent to \emph{maximising} the index variance $V(\mathbf{w})$.
+
+% -------------------------------------------------------------
+\subsection{RBG Structure in 5G NR}
+\label{subsec:rbg_structure}
+% -------------------------------------------------------------
+
+In the existing per-subcarrier formulation~\cite{ldsa}, $N$ independent binary variables $\{w_n\}_{n=0}^{N-1}$ are optimised.
+However, the 5G NR standard specifies that downlink frequency-domain resource allocation is performed at the granularity of \emph{resource block groups} (RBGs)~\cite{3gpp.38.214}.
+
+\begin{definition}[RBG Structure]
+\label{def:rbg}
+Each physical resource block (PRB) comprises 12 consecutive subcarriers.
+An RBG consists of $P$ consecutive PRBs, where $P \in \{2, 4, 8, 16\}$ is determined by the bandwidth part (BWP) size according to TS~38.214, Table~5.1.2.2.1-1~\cite{3gpp.38.214}.
+The total number of RBGs is
+\begin{equation}
+  G = \left\lfloor \frac{N}{12P} \right\rfloor.
+  \label{eq:num_rbg}
+\end{equation}
+\end{definition}
+
+Let $M = 12P$ denote the number of subcarriers per RBG.
+The $g$-th RBG ($g = 1, \ldots, G$) occupies the contiguous subcarrier index set
+\begin{equation}
+  \Gcal_g = \big\{(g-1)M,\; (g-1)M + 1,\; \ldots,\; gM - 1\big\}.
+  \label{eq:rbg_set}
+\end{equation}
+Since all $M$ subcarriers within an RBG must be jointly allocated to either sensing or communication, we introduce the \emph{RBG-level binary decision variable}:
+\begin{equation}
+  \tilde{w}_g \in \{0, 1\}, \quad g = 1, \ldots, G,
+  \label{eq:rbg_var}
+\end{equation}
+where $\tilde{w}_g = 1$ assigns all subcarriers in $\Gcal_g$ to sensing, and $\tilde{w}_g = 0$ assigns them to communication.
+The per-subcarrier allocation is then determined as $w_n = \tilde{w}_g$ for all $n \in \Gcal_g$.
+
+\begin{remark}[Reduction to per-subcarrier case]
+\label{rmk:reduction}
+Setting $P = 1/12$ (i.e., $M = 1$) recovers the per-subcarrier formulation in~\cite{ldsa}.
+The RBG constraint is therefore a strict generalisation that subsumes the idealised model as a limiting case.
+\end{remark}
+
+% -------------------------------------------------------------
+\subsection{RBG-Level Aggregates}
+\label{subsec:rbg_aggregates}
+% -------------------------------------------------------------
+
+Under the RBG constraint, the moment sums~\eqref{eq:moments} and the variance~\eqref{eq:variance} can be expressed entirely in terms of the $G$-dimensional vector $\tilde{\mathbf{w}} = [\tilde{w}_1, \ldots, \tilde{w}_G]^\top$ through pre-computable per-RBG aggregates.
+
+\begin{definition}[Per-RBG aggregates]
+\label{def:aggregates}
+For each RBG $g = 1, \ldots, G$, define:
+\begin{subequations}\label{eq:rbg_agg}
+\begin{align}
+  \mu_g &= \sum_{n \in \Gcal_g} n
+         = (g-1)M^2 + \tfrac{M(M-1)}{2},
+  \label{eq:mu_g} \\
+  \nu_g &= \sum_{n \in \Gcal_g} n^2
+         = \sum_{k=0}^{M-1} \big((g-1)M + k\big)^2,
+  \label{eq:nu_g} \\
+  \bar{r}_{g,u} &= \sum_{\substack{n \in \Gcal_g \\ u_n = u}} r_n, \quad \forall\, u \in \Ucal,
+  \label{eq:rate_rbg}
+\end{align}
+\end{subequations}
+where $\mu_g$ and $\nu_g$ are the first and second moment sums of subcarrier indices within RBG~$g$, and $\bar{r}_{g,u}$ is the aggregate achievable rate on RBG~$g$ for user~$u$.
+Both $\mu_g$ and $\nu_g$ are computable in $O(1)$ per RBG via standard summation formulae.
+\end{definition}
+
+In terms of these aggregates, the moment sums become:
+\begin{equation}
+  S_k(\tilde{\mathbf{w}}) = \sum_{g=1}^{G} \tilde{w}_g \sum_{n \in \Gcal_g} n^k, \quad k = 0, 1, 2.
+  \label{eq:moments_rbg}
+\end{equation}
+Specifically, $S_0 = K_G M$ where $K_G = \sum_{g=1}^{G} \tilde{w}_g$ is the number of sensing RBGs (total sensing subcarrier count $K = K_G M$), $S_1 = \sum_g \tilde{w}_g \mu_g$, and $S_2 = \sum_g \tilde{w}_g \nu_g$.
+
+The index variance is then
+\begin{equation}
+  V(\tilde{\mathbf{w}}) = \frac{\sum_{g=1}^{G} \tilde{w}_g \, \nu_g}{K_G M}
+                         - \left(\frac{\sum_{g=1}^{G} \tilde{w}_g \, \mu_g}{K_G M}\right)^{\!2},
+  \label{eq:var_rbg}
+\end{equation}
+and the per-user aggregate rate becomes
+\begin{equation}
+  R_u(\tilde{\mathbf{w}}) = \sum_{g=1}^{G} (1 - \tilde{w}_g)\, \bar{r}_{g,u}, \quad \forall\, u \in \Ucal.
+  \label{eq:rate_rbg_total}
+\end{equation}
+
+% -------------------------------------------------------------
+\subsection{Intra-/Inter-RBG Variance Decomposition}
+\label{subsec:variance_decomp}
+% -------------------------------------------------------------
+
+A key structural property of the RBG formulation is that the total index variance admits a clean decomposition into \emph{inter-RBG} and \emph{intra-RBG} components, analogous to the analysis of variance (ANOVA).
+
+\begin{proposition}[Variance decomposition]
+\label{prop:var_decomp}
+Let $c_g = (g - 1)M + (M-1)/2$ denote the centroid (mean index) of RBG~$g$, and let
+\begin{equation}
+  V_{\mathrm{intra}} = \frac{M^2 - 1}{12}
+  \label{eq:v_intra}
+\end{equation}
+be the common intra-RBG variance (identical for all RBGs since each contains $M$ consecutive integers).
+Then
+\begin{equation}
+  V(\tilde{\mathbf{w}}) = \underbrace{\frac{1}{K_G} \sum_{g=1}^{G} \tilde{w}_g \big(c_g - \bar{c}\big)^2}_{V_{\mathrm{inter}}(\tilde{\mathbf{w}})}
+                        + \; V_{\mathrm{intra}},
+  \label{eq:anova}
+\end{equation}
+where $\bar{c} = \frac{1}{K_G}\sum_{g=1}^{G} \tilde{w}_g \, c_g$ is the weighted centroid mean.
+\end{proposition}
+
+\begin{proof}
+For any selected subcarrier $n \in \Gcal_g$ with $\tilde{w}_g = 1$, write $n = c_g + \delta_n$ where $\delta_n = n - c_g$ is the offset from the RBG centroid.
+Since each RBG contains $M$ consecutive integers, $\sum_{n \in \Gcal_g} \delta_n = 0$ for every $g$, and the overall subcarrier mean satisfies $\bar{n} = \bar{c}$.
+Expanding $(n - \bar{n})^2 = (c_g - \bar{c})^2 + 2(c_g - \bar{c})\delta_n + \delta_n^2$ and summing over all selected subcarriers:
+\begin{equation}
+  \sum_{g:\,\tilde{w}_g=1} \sum_{n \in \Gcal_g} (n - \bar{n})^2
+  = M \sum_{g:\,\tilde{w}_g=1} (c_g - \bar{c})^2
+    + K_G \cdot \frac{M(M^2 - 1)}{12},
+  \label{eq:decomp_expand}
+\end{equation}
+where the cross-term vanishes due to $\sum_{n \in \Gcal_g} \delta_n = 0$.
+Dividing both sides by $K = K_G M$ yields~\eqref{eq:anova}.
+\end{proof}
+
+\begin{remark}[Implication for optimisation]
+\label{rmk:opt_implication}
+Since $V_{\mathrm{intra}}$ is a constant determined solely by $M = 12P$, maximising $V(\tilde{\mathbf{w}})$ reduces to maximising $V_{\mathrm{inter}}(\tilde{\mathbf{w}})$, the \emph{variance of the RBG centroids}.
+This is the RBG-level analogue of the per-subcarrier result in~\cite{ldsa}:
+instead of dispersing individual subcarriers, the optimiser now disperses RBG \emph{blocks}.
+The irreducible sensing loss from the grouping constraint is captured entirely by $V_{\mathrm{intra}}$, which grows quadratically with the RBG size~$M$.
+\end{remark}
+
+% -------------------------------------------------------------
+\subsection{Problem Formulation}
+\label{subsec:problem}
+% -------------------------------------------------------------
+
+Using the variance decomposition of Proposition~\ref{prop:var_decomp}, we formulate the RBG-constrained ISAC subcarrier allocation as:
+
+\begin{subequations}\label{eq:P0_RBG}
+\begin{align}
+  (\text{P0-RBG}): \quad \max_{\tilde{\mathbf{w}}} \quad
+    & V_{\mathrm{inter}}(\tilde{\mathbf{w}})
+    = \frac{1}{K_G}\sum_{g=1}^{G} \tilde{w}_g\, c_g^2
+      - \left(\frac{1}{K_G}\sum_{g=1}^{G} \tilde{w}_g\, c_g\right)^{\!2}
+    \label{eq:P0_obj} \\
+  \text{s.t.} \quad
+    & \text{C1:} \quad \sum_{g=1}^{G} \tilde{w}_g = K_G,
+    \label{eq:P0_C1} \\
+    & \text{C2:} \quad R_u(\tilde{\mathbf{w}}) \geq \Rmin_u, \quad \forall\, u \in \Ucal,
+    \label{eq:P0_C2} \\
+    & \text{C3:} \quad \tilde{w}_g \in \{0, 1\}, \quad \forall\, g = 1, \ldots, G.
+    \label{eq:P0_C3}
+\end{align}
+\end{subequations}
+
+Here, $K_G$ is the prescribed number of sensing RBGs (equivalently, $K = K_G M$ sensing subcarriers).
+Constraint C1 fixes the sensing budget at the RBG level.
+Constraint C2 enforces per-user quality-of-service (QoS), where the per-user rate is given by~\eqref{eq:rate_rbg_total}.
+Constraint C3 is the integrality requirement imposed by the NR scheduling granularity.
+
+\begin{remark}[Relationship to (P0) of~\cite{ldsa}]
+\label{rmk:relationship}
+Problem~(P0-RBG) has $G$ binary variables versus the $N$ variables in~\cite{ldsa}, with $G = N/(12P) \ll N$.
+The objective~\eqref{eq:P0_obj} has an identical mathematical structure---a ratio of linear and quadratic terms in~$\tilde{\mathbf{w}}$---but operates on the RBG centroid indices $\{c_g\}$ rather than individual subcarrier indices.
+\end{remark}
+
+\subsubsection{Convex relaxation}
+We relax C3 to $\tilde{w}_g \in [0, 1]$:
+\begin{subequations}\label{eq:P1_RBG}
+\begin{align}
+  (\text{P1-RBG}): \quad \max_{\tilde{\mathbf{w}} \in [0,1]^G} \quad
+    & f(\tilde{\mathbf{w}}) = \frac{1}{K_G}\sum_{g} \tilde{w}_g\, c_g^2
+      - \frac{1}{K_G^2}\!\left(\sum_{g} \tilde{w}_g\, c_g\right)^{\!2}
+    \label{eq:P1_obj} \\
+  \text{s.t.} \quad
+    & \text{C1, C2 in~\eqref{eq:P0_RBG}}.
+    \label{eq:P1_constraints}
+\end{align}
+\end{subequations}
+
+\begin{proposition}[Concavity of (P1-RBG)]
+\label{prop:concavity}
+The objective $f(\tilde{\mathbf{w}})$ in~\eqref{eq:P1_obj} is concave on the feasible set $\{\tilde{\mathbf{w}} : \sum_g \tilde{w}_g = K_G,\; \tilde{\mathbf{w}} \in [0,1]^G\}$.
+Consequently, (P1-RBG) is a convex programme.
+\end{proposition}
+
+\begin{proof}
+On the affine subspace defined by C1, $K_G = \sum_g \tilde{w}_g$ is constant.
+The first term $\frac{1}{K_G}\sum_g \tilde{w}_g c_g^2$ is linear in $\tilde{\mathbf{w}}$.
+The second term can be written as $-\frac{1}{K_G^2}\, \tilde{\mathbf{w}}^\top \mathbf{c}\mathbf{c}^\top \tilde{\mathbf{w}}$ where $\mathbf{c} = [c_1, \ldots, c_G]^\top$.
+Since $\mathbf{c}\mathbf{c}^\top$ is positive semidefinite (rank one), this is a concave quadratic.
+The sum of a linear and a concave function is concave.
+All constraints are affine or box constraints, hence the feasible set is convex.
+\end{proof}
+
+\begin{remark}[Strong duality]
+\label{rmk:slater}
+Strong duality holds for (P1-RBG) provided Slater's condition is satisfied, i.e., $K_G < G$ and $\sum_g \bar{r}_{g,u} > \Rmin_u$ for all $u \in \Ucal$.
+This enables the Lagrangian dual approach developed in Section~\ref{sec:method}.
+\end{remark}
+
+\subsubsection{Structural comparison}
+Table~\ref{tab:comparison} summarises the key differences between the per-subcarrier and RBG-level formulations.
+
+\input{tables/table_comparison}

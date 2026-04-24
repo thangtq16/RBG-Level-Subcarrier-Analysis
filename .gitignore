@@ -1,0 +1,24 @@
+## Core LaTeX intermediate files
+build/
+*.aux
+*.fdb_latexmk
+*.fls
+*.gz
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+
+## Document output
+# We usually don't track the PDF because it's a generated file
+*.pdf
+
+## OS generated files
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Thumbs.db
+
+## VS Code specific
+.vscode/

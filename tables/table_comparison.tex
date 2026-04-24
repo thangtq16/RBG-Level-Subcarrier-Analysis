@@ -1,0 +1,18 @@
+% tables/table_comparison.tex
+\begin{table}[t]
+  \centering
+  \caption{Per-Subcarrier vs.\ RBG-Level Formulation Comparison}
+  \label{tab:comparison}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    \textbf{Property} & \textbf{Per-SC~\cite{ldsa}} & \textbf{RBG (this work)} \\
+    \midrule
+    Decision variables       & $N$ ($w_n$)       & $G = N/(12P)$ ($\tilde{w}_g$) \\
+    Granularity              & 1 subcarrier      & $M = 12P$ subcarriers \\
+    Index used in objective  & $n$               & $c_g$ (RBG centroid) \\
+    Intra-block variance     & 0                 & $(M^2 - 1)/12$ \\
+    NR DCI-compatible        & No                & Yes \\
+    Typical $G/N$ ratio      & 1                 & $1/24$ to $1/192$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
