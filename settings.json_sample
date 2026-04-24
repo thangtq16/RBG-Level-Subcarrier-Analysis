@@ -1,0 +1,125 @@
+{
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "terminal.integrated.inheritEnv": false,
+    "files.autoSave": "afterDelay",
+    "terminal.integrated.commandsToSkipShell": [
+        "matlab.interrupt"
+    ],
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.autofetch": true,
+    "terminal.integrated.fontFamily": "'MesloLGS NF'",
+    "chat.viewSessions.orientation": "stacked",
+    "MATLAB.matlabConnectionTiming": "onDemand",
+    "MATLAB.telemetry": false,
+    "makefile.configureOnOpen": true,
+    "git.enableSmartCommit": true,
+    "plantuml.commandArgs": [
+        ["-DPLANTUML_LIMIT_SIZE=65536"]
+    ],
+    "window.commandCenter": false,
+    "workbench.layoutControl.enabled": false,
+    "claudeCode.preferredLocation": "panel",
+    "window.autoDetectColorScheme": true,
+    "terminal.integrated.enablePersistentSessions": false,
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash",
+            "icon": "terminal-git-bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "plantuml.jar": "/home/thangtq23/Documents/Workspace/plantuml-1.2026.2.jar",
+    "workbench.startupEditor": "none",
+    "workbench.preferredLightColorTheme": "Dark 2026",
+
+    /* LaTeX Workshop Configuration */
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.outDir": "build",
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.latex.autoClean.run": "onBuilt",
+    "latex-workshop.latex.clean.subFolder.enabled": true,
+    "latex-workshop.intellisense.citation.backend": "bibtex",
+    "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+    
+    /* LaTeX Build Recipes */
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "pdflatex -> bibtex -> pdflatex*2",
+            "tools": [
+                "pdflatex",
+                "bibtex",
+                "pdflatex",
+                "pdflatex"
+            ]
+        },
+        {
+            "name": "xelatex",
+            "tools": [
+                "xelatex"
+            ]
+        },
+        {
+            "name": "latexmk",
+            "tools": [
+                "latexmk"
+            ]
+        }
+    ],
+
+    /* LaTeX Build Tools Configuration */
+    "latex-workshop.latex.tools": [
+        {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
+            ]
+        },
+        {
+            "name": "xelatex",
+            "command": "xelatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
+            ]
+        },
+        {
+            "name": "bibtex",
+            "command": "bibtex",
+            "args": [
+                "build/%DOCFILE%"
+            ]
+        },
+        {
+            "name": "latexmk",
+            "command": "latexmk",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-pdf",
+                "-outdir=%OUTDIR%",
+                "%DOC%"
+            ]
+        }
+    ]
+}
